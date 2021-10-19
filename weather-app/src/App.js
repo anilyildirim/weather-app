@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
+import { dateBuilder } from './helpers';
+
 const api = {
   key: "03e5513e4e80850b12120552d229b374",
-  base: "https://api.openweathermap.org/data/2.5/"
+  baseUrl: "https://api.openweathermap.org/data/2.5/"
 }
 
 // Search by location for suggestions: https://openweathermap.org/current#cycle
@@ -16,37 +18,30 @@ function App() {
   const [coordinations, setCoordinations] = useState({});
   const [suggestions, setSuggestions] = useState({});
 
-  const search = evt => {
-    if (evt.key === "Enter") {
-      evt.preventDefault();
+  const search = e => {
+    if (e.key === "Enter") {
+      e.preventDefault();
 
-      fetch(`${api.base}weather?q=${query}&units=metric&appid=${api.key}`)
+      fetch(`${api.baseUrl}weather?q=${query}&units=metric&appid=${api.key}`)
       .then(res => res.json())
       .then(result => {
         setWeather(result);
         setCoordinations(result.coord);
+
+        fetch(`${api.baseUrl}find?lat=${coordinations.lat}&lon=${coordinations.lon}&units=metric&cnt=5&appid=${api.key}`)
+        .then(sugRes => sugRes.json())
+        .then(sugResult => {
+          console.log('sugResult :>> ', sugResult);
+          setSuggestions(sugResult.list);
+          console.log('suggestions :>> ', suggestions);
+        })
       })
       .catch(console.error);
 
-      fetch(`${api.base}find?lat=${coordinations.lat}&lon=${coordinations.lon}&units=metric&cnt=5&appid=${api.key}`)
-      .then(sugRes => sugRes.json())
-      .then(sugResult => {
-        setSuggestions(sugResult.list);
-        console.log('suggestions :>> ', suggestions);
-      })
+
     }
   }
-  const dateBuilder = (d) => {
-    let months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-    let days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
-    let day = days[d.getDay()];
-    let date = d.getDate();
-    let month = months[d.getMonth()];
-    let year = d.getFullYear();
-
-    return `${day} ${date} ${month} ${year}`
-   }
   return (
     <div className={
       (typeof weather.main != "undefined")
@@ -56,14 +51,22 @@ function App() {
       : 'app'}>
       <main>
         <div className="search-box">
-          <input 
-            type="text" 
-            className="search-bar" 
-            placeholder="search" 
-            onChange={ e => setQuery(e.target.value)}
-            value={query}
-            onKeyPress={search}
-          />
+          <form 
+            as="form"
+            role="search"
+            action="/"
+            method="get"
+            /* onSubmit={search} */
+          >
+            <input 
+              type="text" 
+              className="search-bar" 
+              placeholder="search" 
+              onChange={ e => setQuery(e.target.value)}
+              value={query}
+              onKeyPress={search}
+            />
+          </form>
         </div>
         {( typeof weather.main !== "undefined") ? (
           <div>
@@ -79,18 +82,18 @@ function App() {
                 <div className="weather">{weather.weather[0].main}</div>
               </div>
             </div>
-            <div className="suggested-cities">
-              {suggestions && suggestions.map((suggestion, index) => (
-                <div className="weather-box suggested-city" key={ index }>
+            {/* <div className="suggested-cities">
+              {suggestions && suggestions.map((suggestion) => (
+                <div className="weather-box suggested-city" key={ suggestion.id }>
                   <span>{suggestion.name}</span>
                   <div className="temp">{Math.round(suggestion.main.temp)} °C</div>
                   <div className="weather">{suggestion.weather[0].main}</div>
                 </div>
               ))}
-            </div>
+            </div> */}
           </div>
           
-        ) : (query !== '') ? (
+        ) : (query) ? (
           <div>
             <p className="error-warning">We couldn't find any results for {query}. Here is the error code: <span>{weather.message}!</span></p>
           </div>
