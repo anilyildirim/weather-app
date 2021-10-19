@@ -18,28 +18,37 @@ function App() {
   const [coordinations, setCoordinations] = useState({});
   const [suggestions, setSuggestions] = useState({});
 
+  function getData(q) {
+    fetch(`${api.baseUrl}weather?q=${q}&units=metric&appid=${api.key}`)
+    .then(res => res.json())
+    .then(result => {
+      setWeather(result);
+      setCoordinations(result.coord);
+      console.log('result :>> ', result);
+      console.log('coordinations :>> ', coordinations);
+    })
+
+    return weather;
+  }
+
+  function getSuggestions() {
+    
+    fetch(`${api.baseUrl}find?lat=${coordinations.lat}&lon=${coordinations.lon}&units=metric&cnt=5&appid=${api.key}`)
+    .then(sugRes => sugRes.json())
+    .then(sugResult => {
+      console.log('sugResult :>> ', sugResult);
+      setSuggestions(sugResult.list);
+      console.log('suggestions :>> ', suggestions);
+    });
+
+    return suggestions;
+  }
+
   const search = e => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-
-      fetch(`${api.baseUrl}weather?q=${query}&units=metric&appid=${api.key}`)
-      .then(res => res.json())
-      .then(result => {
-        setWeather(result);
-        setCoordinations(result.coord);
-
-        fetch(`${api.baseUrl}find?lat=${coordinations.lat}&lon=${coordinations.lon}&units=metric&cnt=5&appid=${api.key}`)
-        .then(sugRes => sugRes.json())
-        .then(sugResult => {
-          console.log('sugResult :>> ', sugResult);
-          setSuggestions(sugResult.list);
-          console.log('suggestions :>> ', suggestions);
-        })
-      })
-      .catch(console.error);
-
-
-    }
+    e.preventDefault();
+      
+    getData(query);
+    getSuggestions();
   }
 
   return (
@@ -56,7 +65,7 @@ function App() {
             role="search"
             action="/"
             method="get"
-            /* onSubmit={search} */
+            onSubmit={search}
           >
             <input 
               type="text" 
@@ -64,8 +73,11 @@ function App() {
               placeholder="search" 
               onChange={ e => setQuery(e.target.value)}
               value={query}
-              onKeyPress={search}
+              onKeyPress={(e) => (
+                (e.key === 'Enter') ? search(e): '')}
             />
+            <button type="submit">submit</button>
+            <button type="reset" onClick={(e) => setQuery(e.target.value)}>reset</button>
           </form>
         </div>
         {( typeof weather.main !== "undefined") ? (
@@ -82,7 +94,7 @@ function App() {
                 <div className="weather">{weather.weather[0].main}</div>
               </div>
             </div>
-            {/* <div className="suggested-cities">
+            <div className="suggested-cities">
               {suggestions && suggestions.map((suggestion) => (
                 <div className="weather-box suggested-city" key={ suggestion.id }>
                   <span>{suggestion.name}</span>
@@ -90,7 +102,7 @@ function App() {
                   <div className="weather">{suggestion.weather[0].main}</div>
                 </div>
               ))}
-            </div> */}
+            </div>
           </div>
           
         ) : (query) ? (
