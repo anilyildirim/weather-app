@@ -87,7 +87,7 @@ function App() {
                   {weather.name}, {weather.sys.country}
                 </p>
                 {/* TODO:Fix datetime attribute */}
-                <time datetime="2008-02-14" className="date">{dateBuilder(new Date())}</time>
+                <time dateTime={dateBuilder(new Date())[0]} className="date">{dateBuilder(new Date())[1]}</time>
               </div>
               <div className="weather-box">
                 <p className="temp">{Math.round(weather.main.temp)} °C</p>

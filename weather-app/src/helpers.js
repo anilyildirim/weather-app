@@ -5,7 +5,11 @@ export const dateBuilder = (d) => {
   let day = days[d.getDay()];
   let date = d.getDate();
   let month = months[d.getMonth()];
+  let monthIndex = months.indexOf(months[d.getMonth()]) + 1;
   let year = d.getFullYear();
 
-  return `${day} ${date} ${month} ${year}`
+  let dateTimeAttr = `${year}-${monthIndex}-${date}`;
+  let dateText = `${day} ${date} ${month} ${year}`;
+
+  return [dateTimeAttr, dateText];
 }
