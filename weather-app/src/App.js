@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { dateBuilder } from './helpers';
 
 const api = {
@@ -24,32 +24,26 @@ function App() {
     .then(result => {
       setWeather(result);
       setCoordinations(result.coord);
-      console.log('result :>> ', result);
-      console.log('coordinations :>> ', coordinations);
     })
 
     return weather;
-  }
-
-  function getSuggestions() {
-    
-    fetch(`${api.baseUrl}find?lat=${coordinations.lat}&lon=${coordinations.lon}&units=metric&cnt=5&appid=${api.key}`)
-    .then(sugRes => sugRes.json())
-    .then(sugResult => {
-      console.log('sugResult :>> ', sugResult);
-      setSuggestions(sugResult.list);
-      console.log('suggestions :>> ', suggestions);
-    });
-
-    return suggestions;
   }
 
   const search = e => {
     e.preventDefault();
       
     getData(query);
-    getSuggestions();
   }
+
+  useEffect(() => {
+    if (coordinations) {
+      fetch(`${api.baseUrl}find?lat=${coordinations.lat}&lon=${coordinations.lon}&units=metric&cnt=5&appid=${api.key}`)
+      .then(sugRes => sugRes.json())
+      .then(sugResult => {
+        setSuggestions(sugResult.list);
+      });
+    }
+  }, [coordinations]);
 
   return (
     <main className={
@@ -94,7 +88,7 @@ function App() {
                 <p className="weather">{weather.weather[0].main}</p>
               </div>
             </div>
-            {/* <div className="suggested-cities">
+            <div className="suggested-cities">
               {suggestions && suggestions.map((suggestion) => (
                 <div className="weather-box suggested-city" key={ suggestion.id }>
                   <span>{suggestion.name}</span>
@@ -102,7 +96,7 @@ function App() {
                   <div className="weather">{suggestion.weather[0].main}</div>
                 </div>
               ))}
-            </div> */}
+            </div>
           </div>
         ) : (query) ? (
           <div>
