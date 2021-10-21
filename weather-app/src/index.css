@@ -14,10 +14,17 @@ body {
 }
 
 .app {
-  background-image: url('./assets/cloudy.jpg');
   background-size: cover;
   background-position: bottom;
   transition: 400ms ease-out all;
+}
+
+.app.initial {
+  background: linear-gradient(0deg, rgba(34,193,195,1) 0%, rgba(253,187,45,1) 100%);
+}
+
+.app.cold {
+  background-image: url('./assets/cloudy.jpg');
 }
 
 .app.warm {
@@ -28,6 +35,17 @@ body {
   min-height: 100vh;
   background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.75));
   padding: 100px;
+  text-align: center;
+}
+
+h1 {
+  font-size: 40px;
+  color: #fff;
+}
+
+p {
+  color: #fff;
+  font-size: 30px;
 }
 
 .search-form {
@@ -43,8 +61,8 @@ body {
   background: none;
   border: none;
   background-color: rgba(255, 255, 255, 0.5);
-  margin-top: -25px;
-  border-radius: 0 0 16px 16px;
+  margin-top: 25px;
+  border-radius: 16px;
   box-shadow: 0 5px rgba(0, 0, 0, 0.2);
   color: #313131;
   font-size: 20px;
@@ -53,6 +71,33 @@ body {
 
 .search-form .search-bar:focus {
   background-color: rgba(255, 255, 255, 0.75);
+}
+
+.button-wrapper {
+  display: flex;
+  justify-content: space-evenly;
+  margin-top: 20px;
+}
+
+.search-form button {
+  background-color: rgba(255, 255, 255, 0.5);
+  border: none;
+  border-radius: 10px;
+  padding: 7px 10px 5px 10px;
+  font-size: 24px;
+  color: #fff;
+  cursor: pointer;
+  flex: 0 0 calc(50% - 50px);
+  transition: all 200ms ease-in-out;
+}
+
+.search-form button:hover,
+.search-form button:focus-visible {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.search-form button:focus-visible {
+  outline: 2px dotted orange;
 }
 
 .location-box .location {
@@ -99,6 +144,15 @@ body {
   text-shadow: rgba(50, 50, 70, 0.5);
 }
 
+.weather-box .real-feel {
+  color: #fff;
+  font-size: 24px;
+  font-weight: 700;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  text-shadow: rgba(50, 50, 70, 0.5);
+}
+
 .error-warning {
   display: inline-block;
   color: #fff;
@@ -111,24 +165,25 @@ body {
   text-transform: capitalize;
 }
 
-.suggested-cities {
+.forecast-results-list {
   display: flex;
   justify-content: space-evenly;
 }
 
-.suggested-city {
+.forecast-result {
   display: flex;
   flex-direction: column;
+  align-items: center;
 }
 
-.suggested-city span {
+.forecast-result time {
   color: #fff;
   font-size: 28px;
   font-weight: 700;
   text-shadow: rgba(50, 50, 70, 0.5);
 }
 
-.suggested-city.weather-box .temp,
-.suggested-city.weather-box .weather {
+.forecast-result.weather-box .temp,
+.forecast-result.weather-box .weather {
   font-size: 18px;
 }

@@ -3,7 +3,8 @@ import { dateBuilder } from './helpers';
 
 const api = {
   key: "03e5513e4e80850b12120552d229b374",
-  baseUrl: "https://api.openweathermap.org/data/2.5/"
+  baseUrl: "https://api.openweathermap.org/data/2.5/", 
+  backupKey: "9575b4b0fc43fb3d06fc82c23e4cd645", 
 }
 
 // Search by location for suggestions: https://openweathermap.org/current#cycle
@@ -15,44 +16,59 @@ function App() {
 
   const [query, setQuery] = useState('');
   const [weather, setWeather] = useState({});
-  const [coordinations, setCoordinations] = useState({});
-  const [suggestions, setSuggestions] = useState({});
+  const [forecasts, setForecasts] = useState({});
+  const [searchOnce, setSearchOnce] = useState(false);
 
-  function getData(q) {
-    fetch(`${api.baseUrl}weather?q=${q}&units=metric&appid=${api.key}`)
-    .then(res => res.json())
-    .then(result => {
-      setWeather(result);
-      setCoordinations(result.coord);
-    })
+  function getData(arg) {
+    fetch(`${api.baseUrl}weather?q=${arg}&units=metric&appid=${api.backupKey}`)
+      .then(res => res.json())
+      .then(result => {
+        setWeather(result);
+      })
+      .catch(console.error);
+  }
+
+  function handleSubmit(q) {
+    getData(q)
+    setInterval(() => { 
+      getData(q)
+    }, 10000);
 
     return weather;
   }
 
   const search = e => {
     e.preventDefault();
-      
-    getData(query);
+    setSearchOnce(false);
+    handleSubmit(query);
+    console.log('forecasts :>> ', forecasts);
   }
 
   useEffect(() => {
-    if (coordinations) {
-      fetch(`${api.baseUrl}find?lat=${coordinations.lat}&lon=${coordinations.lon}&units=metric&cnt=5&appid=${api.key}`)
-      .then(sugRes => sugRes.json())
-      .then(sugResult => {
-        setSuggestions(sugResult.list);
-      });
+    if (weather.main && query && !searchOnce) {
+      fetch(`${api.baseUrl}forecast?q=${query}&units=metric&cnt=5&appid=${api.backupKey}`)
+      .then(res => res.json())
+      .then(result => {
+        setForecasts(result.list);
+      })
+      .catch(console.error);
+
+      setSearchOnce(true);
     }
-  }, [coordinations]);
+  }, [weather.main, forecasts, query, searchOnce]);
 
   return (
     <main className={
       (typeof weather.main != "undefined")
        ? ((weather.main.temp > 16)
         ? 'app warm' 
-        : 'app')
-      : 'app'}>
+        : (weather.main.temp <= 16)
+        ? 'app cold'
+        : 'app initial')
+      : 'app initial'}>
       <div className="app__inner">
+        <h1>Check Weather</h1>
+        <p>Enter city name</p>
         <form 
           as="form"
           role="search"
@@ -70,8 +86,10 @@ function App() {
             onKeyPress={(e) => (
               (e.key === 'Enter') ? search(e): '')}
           />
-          <button type="submit">submit</button>
-          <button type="reset" onClick={(e) => setQuery(e.target.value)}>reset</button>
+          <div className="button-wrapper">
+            <button type="submit">submit</button>
+            <button type="reset" onClick={(e) => setQuery(e.target.value)}>reset</button>
+          </div>
         </form>
         {( typeof weather.main !== "undefined") ? (
           <div>
@@ -86,17 +104,19 @@ function App() {
               <div className="weather-box">
                 <p className="temp">{Math.round(weather.main.temp)} °C</p>
                 <p className="weather">{weather.weather[0].main}</p>
+                <p className="real-feel">{`Reel feel: ${Math.round(weather.main.feels_like)} °C`}</p>
               </div>
             </div>
-            <div className="suggested-cities">
-              {suggestions && suggestions.map((suggestion) => (
-                <div className="weather-box suggested-city" key={ suggestion.id }>
-                  <span>{suggestion.name}</span>
-                  <div className="temp">{Math.round(suggestion.main.temp)} °C</div>
-                  <div className="weather">{suggestion.weather[0].main}</div>
-                </div>
+            <ul className="forecast-results-list">
+              {forecasts.length && forecasts.map((forecast) => (
+                <li className="weather-box forecast-result" key={ forecast.dt }>
+                  <time>{forecast.dt_txt}</time>
+                  <p className="temp">{Math.round(forecast.main.temp)} °C</p>
+                  <p className="weather">{forecast.weather[0].main}</p>
+                  <img src={`http://openweathermap.org/img/wn/${forecast.weather[0].icon}@2x.png`} alt="Logo" width="80" height="80"/>
+                </li>
               ))}
-            </div>
+            </ul>
           </div>
         ) : (query) ? (
           <div>
