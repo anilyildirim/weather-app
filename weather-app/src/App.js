@@ -8,13 +8,22 @@ const api = {
 }
 
 function App() {
-  //const [localStorageQuery, setLocalStorageQuery] = useState('');
+  const [localStorageQuery, setLocalStorageQuery] = useState('');
   const [query, setQuery] = useState('');
   const [input, setInput] = useState('');
   const [weather, setWeather] = useState({});
   const [searchOnce, setSearchOnce] = useState(false); // It shows that a query has been sent
 
   const isMounted = useRef(false);
+
+  function getData(q) {
+    fetch(`${api.baseUrl}weather?q=${q}&units=metric&appid=${api.key}`)
+      .then(res => res.json())
+      .then(result => {
+        setWeather(result);
+      })
+      .catch(console.error);
+  }
 
   function search(e) {
     e.preventDefault();
@@ -23,56 +32,51 @@ function App() {
     }
   }
 
+  // Check if component is mounted. If it is mounted, make an API request and set weather conditions
   useEffect(() => {
     if (isMounted.current) {
-      fetch(`${api.baseUrl}weather?q=${query}&units=metric&appid=${api.key}`)
-      .then(res => res.json())
-      .then(result => {
-        setWeather(result);
-      })
-      .catch(console.error);
+      getData(query);
+      setSearchOnce(true);
+      setInput('');
     } else {
       isMounted.current = true;
     }
 
   }, [query]);
   
+  // Check if there is a valid response from the API. If there is, keep sending the same query for every 10 seconds.
   useEffect(() => {
-    if (weather.main) {
+    if (weather.main && query) {
       const interval = setInterval(() => {
         fetch(`${api.baseUrl}weather?q=${query}&units=metric&appid=${api.key}`)
         .then(res => res.json())
         .then(result => {
-          console.log('result :>> ', result);
           setWeather(result);
         })
         .catch(console.error);
+
+        console.log('this works');
       }, 10000);
 
       return () => clearInterval(interval);
     }
   }, [weather, query])
   
+  // Handle local storage on page load. Display the last 'valid' API result on the screen.
   useEffect(() => {
-    if (weather.main && query && !searchOnce) {
-      setSearchOnce(true);
-      setInput('');
+    if(localStorage.getItem('lastQuery')) {
+      setLocalStorageQuery(localStorage.getItem('lastQuery'));
+      getData(localStorage.lastQuery);
     }
-  }, [weather.main, query, searchOnce]); 
-  
-  /*   useEffect(() => {
-      if(localStorage.getItem('lastQuery')) {
-        setLocalStorageQuery(localStorage.getItem('lastQuery'));
-      }
-    }, []);
-  
-    useEffect(() => {
-      if (weather.main && query && initialSearch) {
-        setLocalStorageQuery(query);
-        localStorage.setItem('lastQuery', localStorageQuery);
-      }
-    }, [weather.main, query, initialSearch, localStorageQuery]);
-  */
+  }, []);
+
+  // Handle local storage after a valid API request.
+  useEffect(() => {
+    if (weather.main) {
+      setLocalStorageQuery(weather.name);
+      localStorage.setItem('lastQuery', localStorageQuery);
+    }
+  }, [weather.main, weather.name, localStorageQuery]);
   
   return (
     <main className={
@@ -93,8 +97,10 @@ function App() {
           className="search-form"
           method="get"
           onSubmit={(e) => {
-            search(e);
-            setQuery(e.target[0].value);
+              search(e);
+              if(e.target[0].value !== '') {
+                setQuery(e.target[0].value);
+              }
             }
           }
         >
@@ -108,13 +114,20 @@ function App() {
             onKeyPress={(e) => {
               if (e.key === 'Enter') {
                 search(e);
-                setQuery(e.target.value);
+                if(e.target.value !== '') {
+                  setQuery(e.target.value);
+                }
               }
             }}
           />
           <div className="button-wrapper">
             <button type="submit">submit</button>
-            <button type="reset" onClick={(e) => setInput(e.target.value)}>reset</button>
+            <button type="reset" 
+              onClick={(e) => {
+                  setInput(e.target.value)
+                  setSearchOnce(false);
+                }
+              }>reset</button>
           </div>
         </form>
         {( typeof weather.main !== "undefined") ? (
