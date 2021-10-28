@@ -1,0 +1,23 @@
+.error {
+  &__warning {
+    display: inline-block;
+    color: var(--c-white);
+    font-size: pxtorem(40px);
+    font-weight: $f-weight-bold;
+    border: 5px solid red;
+    padding: 10px 15px;
+
+    @include mobile {
+      font-size: pxtorem(24px);
+      border-width: 3px;
+      padding: 7px 12px;
+    }
+  }
+  
+  span {
+    display: block;
+    margin-top: 20px;
+    padding-bottom: 10px;
+    text-transform: capitalize;
+  }
+}

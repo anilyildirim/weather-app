@@ -1,0 +1,71 @@
+.result {
+  text-align: center;
+
+  &__location {
+    font-weight: $f-weight-bold;
+    text-align: center;
+    text-shadow: 3px 3px rgba(50, 50, 70, 0.5);
+  }
+  
+  &__date {
+    display: block;
+    font-size: pxtorem(20px);
+    font-weight: $f-weight-light;
+    font-style: italic;
+    text-align: center;
+    text-shadow: rgba(50, 50, 70, 0.5);
+
+    @include mobile {
+      font-size: pxtorem(18px);
+    }
+  }
+  
+  &__temperature {
+    display: inline-block;
+    margin: 30px auto 15px auto;
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 16px;
+    padding: 15px 25px;
+    font-size: pxtorem(70px);
+    font-weight: $f-weight-bolder;
+    text-shadow: 3px 6px rgba(50, 50, 70, 0.5);
+    box-shadow: 3px 6px rgba(0, 0, 0, 0.2);
+    text-align: center;
+
+    @include mobile {
+      margin: 22px auto 15px auto;
+      border-radius: 12px;
+      padding: 12px 20px;
+      font-size: pxtorem(50px);
+    }
+  }
+
+  &__weather-condition {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    align-items: center;
+  }
+  
+  &__weather {
+    font-size: pxtorem(48px);
+    font-weight: $f-weight-bold;
+    text-shadow: rgba(50, 50, 70, 0.5);
+
+    @include mobile {
+      font-size: pxtorem(30px);
+    }
+  }
+  
+  &__real-feel {
+    font-size: pxtorem(24px);
+    font-weight: $f-weight-bold;
+    margin-top: 20px;
+    text-shadow: rgba(50, 50, 70, 0.5);
+
+    @include mobile {
+      font-size: pxtorem(20px);
+      margin-top: 16px;
+    }
+  }
+}

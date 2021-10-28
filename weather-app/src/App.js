@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { dateBuilder } from './helpers';
+import Header from './components/Header';
+import Result from './components/Result';
+import Error from './components/Error';
 
 const api = {
   key: "5e357949343cf59407294ed2d34dd8ab",
@@ -55,7 +57,6 @@ function App() {
         })
         .catch(console.error);
 
-        console.log('this works');
       }, 10000);
 
       return () => clearInterval(interval);
@@ -82,19 +83,18 @@ function App() {
     <main className={
       (typeof weather.main != "undefined")
        ? ((weather.main.temp > 16)
-        ? 'app warm' 
+        ? 'app app__warm' 
         : (weather.main.temp <= 16)
-        ? 'app cold'
-        : 'app initial')
-      : 'app initial'}>
+        ? 'app app__cold'
+        : 'app app__initial')
+      : 'app app__initial'}>
       <div className="app__inner">
-        <h1>Check Weather</h1>
-        <p>Enter city name</p>
+        <Header titleText="Check Weather" continuousText="Enter city name" />
         <form 
           as="form"
           role="search"
           action="/"
-          className="search-form"
+          className="app__search-form"
           method="get"
           onSubmit={(e) => {
               search(e);
@@ -106,9 +106,9 @@ function App() {
         >
           <input 
             type="text" 
-            className="search-bar" 
+            className="app__search-bar" 
             name="lastQuery"
-            placeholder="search" 
+            placeholder="type your city" 
             onChange={ e => setInput(e.target.value)}
             value={input}
             onKeyPress={(e) => {
@@ -120,9 +120,9 @@ function App() {
               }
             }}
           />
-          <div className="button-wrapper">
-            <button type="submit">submit</button>
-            <button type="reset" 
+          <div className="app__button-wrapper">
+            <button className="button" type="submit">submit</button>
+            <button className="button" type="reset" 
               onClick={(e) => {
                   setInput(e.target.value)
                   setSearchOnce(false);
@@ -131,27 +131,9 @@ function App() {
           </div>
         </form>
         {( typeof weather.main !== "undefined") ? (
-          <div>
-            <div className="searched-city">
-              <div className="location-box">
-                <p className="location">
-                  {weather.name}, {weather.sys.country}
-                </p>
-                {/* TODO:Fix datetime attribute */}
-                <time dateTime={dateBuilder(new Date())[0]} className="date">{dateBuilder(new Date())[1]}</time>
-              </div>
-              <div className="weather-box">
-                <p className="temp">{Math.round(weather.main.temp)} °C</p>
-                <p className="weather">{weather.weather[0].main}</p>
-                <p className="real-feel">{`Reel feel: ${Math.round(weather.main.feels_like)} °C`}</p>
-                <img src={`http://openweathermap.org/img/wn/${weather.weather[0].icon}@2x.png`} alt="Logo" width="80" height="80"/>
-              </div>
-            </div>
-          </div>
+          <Result weatherResult={weather} />
         ) : (searchOnce) ? (
-          <div>
-            <strong className="error-warning">We couldn't find any results for {query}. Here is the error code: <span>{weather.message}!</span></strong>
-          </div>
+          <Error usedQuery={query} errorMessage={weather.message} />
           ) : ''}
       </div>
     </main>

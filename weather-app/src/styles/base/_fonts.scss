@@ -1,0 +1,10 @@
+h1 {
+  @include h1;
+}
+
+p,
+time,
+span,
+address {
+  @include continuous-text;
+}

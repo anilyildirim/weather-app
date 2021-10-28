@@ -1,0 +1,29 @@
+@mixin font($weight: normal, $size: inherit, $lineHeight: 1, $color: var(--c-white)) {
+  font-weight: $weight;
+  font-size: pxtorem($size);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+  'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+  sans-serif;
+  font-style: normal;
+  font-display: block;
+  line-height: pxtorem($lineHeight);
+  color: $color;
+}
+
+@mixin h1 {
+  @include font($f-weight-regular, 60, 70);
+
+  @include mobile {
+    font-size: pxtorem(40px);
+    line-height: pxtorem(45px);
+  }
+}
+
+@mixin continuous-text {
+  @include font($f-weight-regular, 30, 35);
+
+  @include mobile {
+    font-size: pxtorem(25px);
+    line-height: pxtorem(30px);
+  }
+}
