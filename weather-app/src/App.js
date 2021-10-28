@@ -1,62 +1,79 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { dateBuilder } from './helpers';
 
 const api = {
-  key: "03e5513e4e80850b12120552d229b374",
+  key: "5e357949343cf59407294ed2d34dd8ab",
   baseUrl: "https://api.openweathermap.org/data/2.5/", 
   backupKey: "9575b4b0fc43fb3d06fc82c23e4cd645", 
 }
 
-// Search by location for suggestions: https://openweathermap.org/current#cycle
-// api.openweathermap.org/data/2.5/find?lat={lat}&lon={lon}&cnt={cnt}&appid={API key}
-
-// https://openweathermap.org/weather-conditions
-
 function App() {
-
+  //const [localStorageQuery, setLocalStorageQuery] = useState('');
   const [query, setQuery] = useState('');
+  const [input, setInput] = useState('');
   const [weather, setWeather] = useState({});
-  const [forecasts, setForecasts] = useState({});
-  const [searchOnce, setSearchOnce] = useState(false);
+  const [searchOnce, setSearchOnce] = useState(false); // It shows that a query has been sent
 
-  function getData(arg) {
-    fetch(`${api.baseUrl}weather?q=${arg}&units=metric&appid=${api.backupKey}`)
+  const isMounted = useRef(false);
+
+  function search(e) {
+    e.preventDefault();
+    if (query !== '') {
+      setSearchOnce(false);
+    }
+  }
+
+  useEffect(() => {
+    if (isMounted.current) {
+      fetch(`${api.baseUrl}weather?q=${query}&units=metric&appid=${api.key}`)
       .then(res => res.json())
       .then(result => {
         setWeather(result);
       })
       .catch(console.error);
-  }
+    } else {
+      isMounted.current = true;
+    }
 
-  function handleSubmit(q) {
-    getData(q)
-    setInterval(() => { 
-      getData(q)
-    }, 10000);
+  }, [query]);
+  
+  useEffect(() => {
+    if (weather.main) {
+      const interval = setInterval(() => {
+        fetch(`${api.baseUrl}weather?q=${query}&units=metric&appid=${api.key}`)
+        .then(res => res.json())
+        .then(result => {
+          console.log('result :>> ', result);
+          setWeather(result);
+        })
+        .catch(console.error);
+      }, 10000);
 
-    return weather;
-  }
-
-  const search = e => {
-    e.preventDefault();
-    setSearchOnce(false);
-    handleSubmit(query);
-    console.log('forecasts :>> ', forecasts);
-  }
-
+      return () => clearInterval(interval);
+    }
+  }, [weather, query])
+  
   useEffect(() => {
     if (weather.main && query && !searchOnce) {
-      fetch(`${api.baseUrl}forecast?q=${query}&units=metric&cnt=5&appid=${api.backupKey}`)
-      .then(res => res.json())
-      .then(result => {
-        setForecasts(result.list);
-      })
-      .catch(console.error);
-
       setSearchOnce(true);
+      setInput('');
     }
-  }, [weather.main, forecasts, query, searchOnce]);
-
+  }, [weather.main, query, searchOnce]); 
+  
+  /*   useEffect(() => {
+      if(localStorage.getItem('lastQuery')) {
+        setLocalStorageQuery(localStorage.getItem('lastQuery'));
+      }
+    }, []);
+  
+    useEffect(() => {
+      if (weather.main && query && initialSearch) {
+        setLocalStorageQuery(query);
+        localStorage.setItem('lastQuery', localStorageQuery);
+      }
+    }, [weather.main, query, initialSearch, localStorageQuery]);
+  */
+  
   return (
     <main className={
       (typeof weather.main != "undefined")
@@ -75,20 +92,29 @@ function App() {
           action="/"
           className="search-form"
           method="get"
-          onSubmit={search}
+          onSubmit={(e) => {
+            search(e);
+            setQuery(e.target[0].value);
+            }
+          }
         >
           <input 
             type="text" 
             className="search-bar" 
+            name="lastQuery"
             placeholder="search" 
-            onChange={ e => setQuery(e.target.value)}
-            value={query}
-            onKeyPress={(e) => (
-              (e.key === 'Enter') ? search(e): '')}
+            onChange={ e => setInput(e.target.value)}
+            value={input}
+            onKeyPress={(e) => {
+              if (e.key === 'Enter') {
+                search(e);
+                setQuery(e.target.value);
+              }
+            }}
           />
           <div className="button-wrapper">
             <button type="submit">submit</button>
-            <button type="reset" onClick={(e) => setQuery(e.target.value)}>reset</button>
+            <button type="reset" onClick={(e) => setInput(e.target.value)}>reset</button>
           </div>
         </form>
         {( typeof weather.main !== "undefined") ? (
@@ -105,20 +131,11 @@ function App() {
                 <p className="temp">{Math.round(weather.main.temp)} °C</p>
                 <p className="weather">{weather.weather[0].main}</p>
                 <p className="real-feel">{`Reel feel: ${Math.round(weather.main.feels_like)} °C`}</p>
+                <img src={`http://openweathermap.org/img/wn/${weather.weather[0].icon}@2x.png`} alt="Logo" width="80" height="80"/>
               </div>
             </div>
-            <ul className="forecast-results-list">
-              {forecasts.length && forecasts.map((forecast) => (
-                <li className="weather-box forecast-result" key={ forecast.dt }>
-                  <time>{forecast.dt_txt}</time>
-                  <p className="temp">{Math.round(forecast.main.temp)} °C</p>
-                  <p className="weather">{forecast.weather[0].main}</p>
-                  <img src={`http://openweathermap.org/img/wn/${forecast.weather[0].icon}@2x.png`} alt="Logo" width="80" height="80"/>
-                </li>
-              ))}
-            </ul>
           </div>
-        ) : (query) ? (
+        ) : (searchOnce) ? (
           <div>
             <strong className="error-warning">We couldn't find any results for {query}. Here is the error code: <span>{weather.message}!</span></strong>
           </div>
